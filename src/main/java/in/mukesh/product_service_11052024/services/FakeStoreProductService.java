@@ -1,11 +1,10 @@
 package in.mukesh.product_service_11052024.services;
 
 import in.mukesh.product_service_11052024.dtos.FakeStoreDto;
-import in.mukesh.product_service_11052024.dtos.ProductResponseDto;
+import in.mukesh.product_service_11052024.exceptions.ProductNotFoundException;
 import in.mukesh.product_service_11052024.models.Product;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -15,16 +14,22 @@ import java.util.List;
 @Service
 public class FakeStoreProductService implements ProductService {
 
-    private RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     public FakeStoreProductService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
     @Override
-    public Product getSingleProduct(long productId) {
-        String url = "http://fakestoreapi.com/products/" + productId;
+    public Product getSingleProduct(long productId) throws ProductNotFoundException {
+        String url = "https://fakestoreapi.com/products/" + productId;
         FakeStoreDto fakeStoreDto = restTemplate.getForObject(url, FakeStoreDto.class);
+
+        if (fakeStoreDto == null) {
+            throw new ProductNotFoundException(
+                    "Product with id " + productId + " not found try a product with id less than 21"
+            );
+        }
         return fakeStoreDto.toProduct();
     }
 
@@ -58,14 +63,21 @@ public class FakeStoreProductService implements ProductService {
     }
 
     @Override
-    public Product deleteProduct(long productId) {
+    public Product deleteProduct(long productId) throws ProductNotFoundException {
         String url = "https://fakestoreapi.com/products/" + productId;
         FakeStoreDto response = restTemplate.exchange(url, HttpMethod.DELETE, null, FakeStoreDto.class).getBody();
+
+        if (response == null) {
+            throw new ProductNotFoundException(
+                    "Product with id " + productId + " not found try to delete a product with id less than 21"
+            );
+        }
+
         return response.toProduct();
     }
 
     @Override
-    public Product updateProduct(long productId, String title, double price, String description, String image, String category) {
+    public Product updateProduct(long productId, String title, double price, String description, String image, String category) throws ProductNotFoundException {
         FakeStoreDto requestDto = new FakeStoreDto();
         requestDto.setTitle(title);
         requestDto.setPrice(price);
@@ -83,6 +95,11 @@ public class FakeStoreProductService implements ProductService {
 //         HttpEntity<FakeStoreDto> request = new HttpEntity<>(requestDto);
 //         ResponseEntity<FakeStoreDto> responseEntity = restTemplate.exchange(url, HttpMethod.PATCH, request, FakeStoreDto.class);
 //         FakeStoreDto response = responseEntity.getBody();
+//        if (response == null) {
+//            throw new ProductNotFoundException(
+//                    "Product with id " + productId + " not found try to delete a product with id less than 21"
+//                    );
+//        }
 
         FakeStoreDto response = requestDto;
         response.setId(productId);
@@ -90,7 +107,7 @@ public class FakeStoreProductService implements ProductService {
 
     }
 
-    public Product replaceProduct(long productId, String title, double price, String description, String image, String category) {
+    public Product replaceProduct(long productId, String title, double price, String description, String image, String category) throws ProductNotFoundException {
         FakeStoreDto requestDto = new FakeStoreDto();
         requestDto.setTitle(title);
         requestDto.setPrice(price);
@@ -101,6 +118,12 @@ public class FakeStoreProductService implements ProductService {
         String url = "https://fakestoreapi.com/products/" + productId;
         HttpEntity<FakeStoreDto> request = new HttpEntity<>(requestDto);
         FakeStoreDto response = restTemplate.exchange(url, HttpMethod.PUT, request, FakeStoreDto.class).getBody();
+
+        if(response == null){
+            throw new ProductNotFoundException(
+                    "Product with id " + productId + " not found try to delete a product with id less than 21"
+            );
+        }
         return response.toProduct();
     }
 
