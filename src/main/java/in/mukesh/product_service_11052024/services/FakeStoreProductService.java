@@ -3,6 +3,7 @@ package in.mukesh.product_service_11052024.services;
 import in.mukesh.product_service_11052024.dtos.FakeStoreDto;
 import in.mukesh.product_service_11052024.exceptions.ProductNotFoundException;
 import in.mukesh.product_service_11052024.models.Product;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,11 @@ public class FakeStoreProductService implements ProductService {
             productsList.add(fakeStoreDto.toProduct());
         }
         return productsList;
+    }
+
+    @Override
+    public Page<Product> getAllProducts(int pageNumber, int pageSize, String sortParam) {
+        return null;
     }
 
     @Override

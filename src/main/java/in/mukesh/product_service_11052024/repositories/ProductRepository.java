@@ -2,6 +2,8 @@ package in.mukesh.product_service_11052024.repositories;
 
 import in.mukesh.product_service_11052024.models.Product;
 import in.mukesh.product_service_11052024.repositories.projections.ProductProjection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -13,6 +15,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Product save(Product product);
     List<Product> findAll();
+    Page<Product> findAll(Pageable pegeable);
     Product findByIdIs(Long productId);
     void delete(Product product);
     List<Product> findAllByCategory_Title(String title);

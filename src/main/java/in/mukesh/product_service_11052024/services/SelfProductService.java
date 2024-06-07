@@ -5,6 +5,10 @@ import in.mukesh.product_service_11052024.models.Category;
 import in.mukesh.product_service_11052024.models.Product;
 import in.mukesh.product_service_11052024.repositories.CategoryRepository;
 import in.mukesh.product_service_11052024.repositories.ProductRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,6 +41,12 @@ public class SelfProductService implements ProductService {
 
         List<Product> responseFromDB = productRepository.findAll();
         return responseFromDB;
+    }
+
+    @Override
+    public Page<Product> getAllProducts(int pageNumber, int pageSize, String sortParam) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(sortParam).descending());
+        return productRepository.findAll(pageable);
     }
 
     @Override

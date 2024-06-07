@@ -7,8 +7,10 @@ import in.mukesh.product_service_11052024.dtos.ProductResponseDto;
 import in.mukesh.product_service_11052024.exceptions.ProductNotFoundException;
 import in.mukesh.product_service_11052024.models.Product;
 import in.mukesh.product_service_11052024.services.ProductService;
+import jakarta.websocket.server.PathParam;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,14 +35,33 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.OK).body(toProductResponseDto(product));
     }
 
-    @GetMapping({"/products", "/products/"})
-    public ResponseEntity<List<ProductResponseDto>> getAllProducts() {
-        List<Product> productsList = productService.getAllProducts();
-        List<ProductResponseDto> productResponseDtoList = new ArrayList<>();
-        for (Product product : productsList) {
-            productResponseDtoList.add(toProductResponseDto(product));
+//    @GetMapping({"/products", "/products/"})
+//    public ResponseEntity<List<ProductResponseDto>> getAllProducts() {
+//        List<Product> productsList = productService.getAllProducts();
+//        List<ProductResponseDto> productResponseDtoList = new ArrayList<>();
+//        for (Product product : productsList) {
+//            productResponseDtoList.add(toProductResponseDto(product));
+//        }
+//        return ResponseEntity.status(HttpStatus.OK).body(productResponseDtoList);
+//    }
+
+    // Another way to get all projects with pagination, filtering, sorting
+    // Query Parameter -> http://localhost:8080/products?pageNumber=0&pageSize=5&sortParam=title
+
+    @GetMapping("/products")
+    public ResponseEntity<List<ProductResponseDto>> getAllProducts(
+            @PathParam("pageNumber") int pageNumber,
+            @PathParam("pageSize") int pageSize,
+            @PathParam("sortParam") String sortParam
+    ) {
+        Page<Product> page = productService.getAllProducts(pageNumber, pageSize, sortParam);
+        List<Product> productListCurrentPage = page.getContent();
+        List<ProductResponseDto> productResponseList = new ArrayList<>();
+        for (Product product : productListCurrentPage){
+            productResponseList.add(toProductResponseDto(product));
         }
-        return ResponseEntity.status(HttpStatus.OK).body(productResponseDtoList);
+
+        return ResponseEntity.status(HttpStatus.OK).body(productResponseList);
     }
 
     @PostMapping({"/products", "/products/"})
@@ -62,7 +83,7 @@ public class ProductController {
     }
 
     @PatchMapping("/products/{id}")
-    public ResponseEntity<ProductResponseDto> updateProduct(@PathVariable("id") long productId, @RequestBody ProductRequestDto productRequestDto)  throws ProductNotFoundException {
+    public ResponseEntity<ProductResponseDto> updateProduct(@PathVariable("id") long productId, @RequestBody ProductRequestDto productRequestDto) throws ProductNotFoundException {
         Product product = productService.updateProduct(
                 productId,
                 productRequestDto.getTitle(),
