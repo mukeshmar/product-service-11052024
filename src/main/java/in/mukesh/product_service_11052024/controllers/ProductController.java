@@ -1,7 +1,6 @@
 package in.mukesh.product_service_11052024.controllers;
 
 
-import in.mukesh.product_service_11052024.dtos.ErrorDto;
 import in.mukesh.product_service_11052024.dtos.ProductRequestDto;
 import in.mukesh.product_service_11052024.dtos.ProductResponseDto;
 import in.mukesh.product_service_11052024.exceptions.ProductNotFoundException;
@@ -24,7 +23,7 @@ public class ProductController {
     private final ProductService productService;
     private final ModelMapper modelMapper;
 
-    public ProductController(@Qualifier("SelfProductService") ProductService productService, ModelMapper modelMapper) {
+    public ProductController(@Qualifier("FakeStoreProductService") ProductService productService, ModelMapper modelMapper) {
         this.productService = productService;
         this.modelMapper = modelMapper;
     }

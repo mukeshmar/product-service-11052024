@@ -4,6 +4,7 @@ import in.mukesh.product_service_11052024.dtos.FakeStoreDto;
 import in.mukesh.product_service_11052024.exceptions.ProductNotFoundException;
 import in.mukesh.product_service_11052024.models.Product;
 import org.springframework.data.domain.Page;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -16,13 +17,25 @@ import java.util.List;
 public class FakeStoreProductService implements ProductService {
 
     private final RestTemplate restTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    public FakeStoreProductService(RestTemplate restTemplate) {
+    public FakeStoreProductService(RestTemplate restTemplate, RedisTemplate<String, Object> redisTemplate) {
         this.restTemplate = restTemplate;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
     public Product getSingleProduct(long productId) throws ProductNotFoundException {
+
+        // Check in Cache
+        Product productInCache = (Product) redisTemplate.opsForHash()
+                .get("PRODUCTS", "PRODUCT_" + productId);
+
+        if (productInCache != null){
+            System.out.println("Cache hit for product " + productId);
+            return productInCache;
+        }
+
         String url = "https://fakestoreapi.com/products/" + productId;
         FakeStoreDto fakeStoreDto = restTemplate.getForObject(url, FakeStoreDto.class);
 
@@ -31,7 +44,10 @@ public class FakeStoreProductService implements ProductService {
                     "Product with id " + productId + " not found try a product with id less than 21"
             );
         }
-        return fakeStoreDto.toProduct();
+
+        Product response = fakeStoreDto.toProduct();
+        redisTemplate.opsForHash().put("PRODUCTS", "PRODUCT_" + productId, response);
+        return response;
     }
 
     @Override
