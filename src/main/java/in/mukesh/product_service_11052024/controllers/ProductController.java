@@ -1,8 +1,10 @@
 package in.mukesh.product_service_11052024.controllers;
 
 
+import in.mukesh.product_service_11052024.authCommons.AuthenticationCommon;
 import in.mukesh.product_service_11052024.dtos.ProductRequestDto;
 import in.mukesh.product_service_11052024.dtos.ProductResponseDto;
+import in.mukesh.product_service_11052024.dtos.UserDto;
 import in.mukesh.product_service_11052024.exceptions.ProductNotFoundException;
 import in.mukesh.product_service_11052024.models.Product;
 import in.mukesh.product_service_11052024.services.ProductService;
@@ -22,14 +24,25 @@ public class ProductController {
 
     private final ProductService productService;
     private final ModelMapper modelMapper;
+    private AuthenticationCommon authenticationCommon;
 
-    public ProductController(@Qualifier("FakeStoreProductService") ProductService productService, ModelMapper modelMapper) {
+    public ProductController(@Qualifier("SelfProductService") ProductService productService, ModelMapper modelMapper, AuthenticationCommon authenticationCommon) {
         this.productService = productService;
         this.modelMapper = modelMapper;
+        this.authenticationCommon = authenticationCommon;
     }
 
     @GetMapping("products/{id}")
-    public ResponseEntity<ProductResponseDto> getSingleProduct(@PathVariable("id") long productId) throws ProductNotFoundException {
+    public ResponseEntity<ProductResponseDto> getSingleProduct(@PathVariable("id") long productId, @RequestHeader String authenticationToken) throws ProductNotFoundException {
+
+        // Check if the token is validated or not
+        UserDto userDto = authenticationCommon.validateToken(authenticationToken);
+
+        if(userDto == null){
+            // Token is invalid
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
         Product product = productService.getSingleProduct(productId);
         return ResponseEntity.status(HttpStatus.OK).body(toProductResponseDto(product));
     }
@@ -51,8 +64,18 @@ public class ProductController {
     public ResponseEntity<List<ProductResponseDto>> getAllProducts(
             @PathParam("pageNumber") int pageNumber,
             @PathParam("pageSize") int pageSize,
-            @PathParam("sortParam") String sortParam
+            @PathParam("sortParam") String sortParam,
+            @RequestHeader String authenticationToken
     ) {
+
+        // Check if the token is validated or not
+        UserDto userDto = authenticationCommon.validateToken(authenticationToken);
+
+        if(userDto == null){
+            // Token is invalid
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
         Page<Product> page = productService.getAllProducts(pageNumber, pageSize, sortParam);
         List<Product> productListCurrentPage = page.getContent();
         List<ProductResponseDto> productResponseList = new ArrayList<>();
@@ -64,7 +87,16 @@ public class ProductController {
     }
 
     @PostMapping({"/products", "/products/"})
-    public ResponseEntity<ProductResponseDto> addNewProduct(@RequestBody ProductRequestDto productRequestDto) {
+    public ResponseEntity<ProductResponseDto> addNewProduct(@RequestBody ProductRequestDto productRequestDto, @RequestHeader String authenticationToken) {
+
+        // Check if the token is validated or not
+        UserDto userDto = authenticationCommon.validateToken(authenticationToken);
+
+        if(userDto == null){
+            // Token is invalid
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
         Product product = productService.addNewProduct(
                 productRequestDto.getTitle(),
                 productRequestDto.getPrice(),
@@ -76,13 +108,30 @@ public class ProductController {
     }
 
     @DeleteMapping("/products/{id}")
-    public ResponseEntity<ProductResponseDto> deleteProduct(@PathVariable("id") long productId) throws ProductNotFoundException {
+    public ResponseEntity<ProductResponseDto> deleteProduct(@PathVariable("id") long productId, @RequestHeader String authenticationToken) throws ProductNotFoundException {
+        // Check if the token is validated or not
+        UserDto userDto = authenticationCommon.validateToken(authenticationToken);
+
+        if(userDto == null){
+            // Token is invalid
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
         Product product = productService.deleteProduct(productId);
         return ResponseEntity.status(HttpStatus.OK).body(toProductResponseDto(product));
     }
 
     @PatchMapping("/products/{id}")
-    public ResponseEntity<ProductResponseDto> updateProduct(@PathVariable("id") long productId, @RequestBody ProductRequestDto productRequestDto) throws ProductNotFoundException {
+    public ResponseEntity<ProductResponseDto> updateProduct(@PathVariable("id") long productId, @RequestBody ProductRequestDto productRequestDto, @RequestHeader String authenticationToken) throws ProductNotFoundException {
+
+        // Check if the token is validated or not
+        UserDto userDto = authenticationCommon.validateToken(authenticationToken);
+
+        if(userDto == null){
+            // Token is invalid
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
         Product product = productService.updateProduct(
                 productId,
                 productRequestDto.getTitle(),
@@ -96,7 +145,16 @@ public class ProductController {
     }
 
     @PutMapping("/products/{id}")
-    public ResponseEntity<ProductResponseDto> replaceProduct(@PathVariable("id") long productId, @RequestBody ProductRequestDto productRequestDto) throws ProductNotFoundException {
+    public ResponseEntity<ProductResponseDto> replaceProduct(@PathVariable("id") long productId, @RequestBody ProductRequestDto productRequestDto, @RequestHeader String authenticationToken) throws ProductNotFoundException {
+
+        // Check if the token is validated or not
+        UserDto userDto = authenticationCommon.validateToken(authenticationToken);
+
+        if(userDto == null){
+            // Token is invalid
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
         Product product = productService.replaceProduct(
                 productId,
                 productRequestDto.getTitle(),
