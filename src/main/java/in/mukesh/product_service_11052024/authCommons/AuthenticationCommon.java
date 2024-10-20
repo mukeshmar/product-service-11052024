@@ -13,10 +13,12 @@ public class AuthenticationCommon {
     }
 
     public UserDto validateToken(String token){
+
         UserDto userDto = restTemplate.getForObject(
-                "http://localhost:8081/users/validate/" + token,
+                "http://UserService/users/validate/" + token,
                 UserDto.class
         );
+
         return userDto;
     }
 }
